@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gelişmiş Müşteri Paneli</title>
+    <title>Squad 2 Main Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f0f2f5; color: #333; }
@@ -37,8 +37,9 @@
         .limit-section { margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ddd; }
         .limit-title { text-align: center; font-size: 16px; font-weight: bold; color: #333; margin-bottom: 10px; }
         .bar-container { width: 100%; background-color: #e9ecef; border-radius: 20px; height: 35px; display: flex; overflow: hidden; border: 1px solid #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
-        .bar-used { background-color: #dc3545; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: bold; transition: width 0.6s ease-in-out; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
-        .bar-available { background-color: #28a745; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: bold; transition: width 0.6s ease-in-out; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        .bar-used { background-color: #dc3545; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; transition: width 0.6s ease-in-out; }
+        .bar-available { background-color: #28a745; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; transition: width 0.6s ease-in-out; }
+        .bar-legend { display: flex; justify-content: space-between; font-size: 12px; margin-top: 8px; font-weight: bold; }
 
         #loading { text-align: center; font-weight: bold; color: #007bff; font-size: 18px; margin: 40px 0; }
 
@@ -49,13 +50,15 @@
             .search-box button { width: 100%; padding: 12px; }
             .card-row { flex-direction: column; align-items: flex-start; gap: 5px; }
             .card-row b { font-size: 16px; color: #0056b3; }
+            /* Mobilde limit çubuğu efsanesini alt alta sırala */
+            .bar-legend { flex-direction: column; align-items: center; gap: 5px; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Müşteri Yönetim Paneli</h2>
+    <h2>Squad 2 Main Dashboard</h2>
     
     <div id="loading">Veriler Google Sheets'ten Çekiliyor... Lütfen Bekleyin...</div>
 
@@ -93,7 +96,7 @@
 
 <script>
     // WEB APP URL'SİNİ BURAYA YAPIŞTIR
-    const API_URL = "https://script.google.com/macros/s/AKfycbyeb0oy-HbgKkZZhJl0W5PgRsEWTALE3i_UIs4Fn7mtKOp4h26zKQrE7EYS0gApFJAgQg/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzoNFQ1mJAijr3-v1Dzohc6SfwCSn7f9W7FUTWsAtXp9gIe9G7RZQ8DSrINN7XbhNcZoA/exec";
     
     let allData = [];
     let currentSegment = "";
@@ -150,7 +153,6 @@
         }
     }
 
-    // --- EN GÜÇLÜ RENK EŞLEŞTİRME MANTIĞI ---
     function buildChart() {
         const statuCounts = {};
         
@@ -162,20 +164,16 @@
         const labels = Object.keys(statuCounts);
         const dataValues = Object.values(statuCounts);
 
-        // Kökten Çözüm: Etiketin "içinde" o harfler geçiyorsa rengi ver.
         const backgroundColors = labels.map(label => {
-            let text = String(label).toLowerCase(); // Hepsini küçük harfe çevir
-            
-            if (text.includes('health')) return '#28a745'; // İçinde health geçiyorsa -> Yeşil
-            if (text.includes('legal'))  return '#dc3545'; // İçinde legal geçiyorsa -> Kırmızı
-            if (text.includes('churn'))  return '#fd7e14'; // İçinde churn geçiyorsa -> Turuncu
-            if (text.includes('park'))   return '#ffc107'; // İçinde park geçiyorsa -> Sarı
-            
-            return '#3498db'; // Hiçbiri yoksa (veya yepyeni bir kelimeyse) -> Mavi yap
+            let text = String(label).toLowerCase(); 
+            if (text.includes('health')) return '#28a745'; 
+            if (text.includes('legal'))  return '#dc3545'; 
+            if (text.includes('churn'))  return '#fd7e14'; 
+            if (text.includes('park'))   return '#ffc107'; 
+            return '#3498db'; 
         });
 
         const ctx = document.getElementById('segmentChart').getContext('2d');
-        
         if(chartInstance) chartInstance.destroy();
 
         chartInstance = new Chart(ctx, {
@@ -187,7 +185,7 @@
                     backgroundColor: backgroundColors, 
                     borderWidth: 2,           
                     borderColor: '#ffffff',   
-                    hoverOffset: 20,          
+                    hoverOffset: 15,          
                     borderRadius: 5           
                 }]
             },
@@ -197,11 +195,15 @@
                 plugins: {
                     legend: {
                         position: 'bottom', 
-                        labels: { padding: 20, font: { size: 14, family: 'Segoe UI' } }
+                        labels: { 
+                            padding: 10,       // Yazılar arası boşluk daraltıldı
+                            boxWidth: 15,      // Renk kutucuğu küçültüldü
+                            font: { size: 11, family: 'Segoe UI' } // Yazı boyutu 14'ten 11'e düşürüldü
+                        }
                     },
                     tooltip: {
-                        padding: 15,
-                        bodyFont: { size: 14 },
+                        padding: 10,
+                        bodyFont: { size: 13 },
                         callbacks: {
                             label: (context) => {
                                 let label = context.label || '';
@@ -281,6 +283,10 @@
         let fAnlik = formatTRY(customer.anlikLimit);
         let fAySonu = formatTRY(customer.aySonuLimit);
 
+        // Yeni eklenen sütun verileri (Eğer boşsa "Veri Yok" yazar)
+        let yeniSutun1 = customer.yeniVeri1 || "Veri Yok";
+        let yeniSutun2 = customer.yeniVeri2 || "Veri Yok";
+
         let html = `
             <h3 style="margin-top:0; border-bottom:2px solid #007bff; padding-bottom:10px;">${customer.musteriAdi}</h3>
             <div class="card-row"><span>Müşteri Numarası:</span> <b>${customer.musteriNo}</b></div>
@@ -289,6 +295,9 @@
             <div class="card-row"><span>Müşteri Çatı Limiti:</span> <b>${fCati}</b></div>
             <div class="card-row"><span>Anlık Kullanılabilir Limit:</span> <b>${fAnlik}</b></div>
             <div class="card-row"><span>Ay Sonu Maksimum Limit:</span> <b>${fAySonu}</b></div>
+            
+            <div class="card-row"><span>Müşteri Ödeme Performansı:</span> <b>${yeniSutun1}</b></div>
+            <div class="card-row"><span>Müşteri Ödeme Skoru:</span> <b>${yeniSutun2}</b></div>
         `;
 
         if (isAdmin) {
@@ -303,22 +312,27 @@
         let rawKullanilan = parseToFloat(customer.kullanilanLimit);
         let rawAnlik = parseToFloat(customer.anlikLimit);
 
-        let usedPercent = (rawKullanilan / rawCati) * 100;
-        let availablePercent = (rawAnlik / rawCati) * 100;
+        let usedPercent = Math.round((rawKullanilan / rawCati) * 100);
+        let availablePercent = Math.round((rawAnlik / rawCati) * 100);
         
         if (usedPercent > 100) usedPercent = 100;
         if (availablePercent > (100 - usedPercent)) availablePercent = 100 - usedPercent;
 
+        // Çubuk tasarımında mobil uyum için artık uzun para birimi yerine % (yüzde) gösteriyoruz
         html += `
             <div class="limit-section">
                 <div class="limit-title">Müşteri Çatı Limiti: ${fCati}</div>
                 <div class="bar-container">
                     <div class="bar-used" style="width: ${usedPercent}%;" title="Kullanılan Limit: ${fKullanilan}">
-                        ${usedPercent > 5 ? fKullanilan : ''}
+                        ${usedPercent > 8 ? '%' + usedPercent : ''}
                     </div>
                     <div class="bar-available" style="width: ${availablePercent}%;" title="Anlık Kullanılabilir: ${fAnlik}">
-                        ${availablePercent > 5 ? fAnlik : ''}
+                        ${availablePercent > 8 ? '%' + availablePercent : ''}
                     </div>
+                </div>
+                <div class="bar-legend">
+                    <span style="color: #dc3545;">Kullanılan: ${fKullanilan}</span>
+                    <span style="color: #28a745;">Anlık: ${fAnlik}</span>
                 </div>
             </div>
         `;
