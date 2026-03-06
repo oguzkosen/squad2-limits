@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelişmiş Müşteri Paneli</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f0f2f5; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2, h3 { text-align: center; color: #2c3e50; }
+        
+        .search-box { display: flex; gap: 10px; margin-bottom: 25px; justify-content: center; }
+        .search-box input { padding: 12px; width: 60%; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; transition: border 0.3s; }
+        .search-box input:focus { border-color: #007bff; outline: none; box-shadow: 0 0 5px rgba(0,123,255,0.2); }
+        .search-box button { background-color: #007bff; border-radius: 8px; padding: 0 20px; color: white; border: none; cursor: pointer;}
+        
+        button { padding: 10px 15px; background-color: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
+        .back-btn { margin-bottom: 15px; background-color: #343a40; }
+
+        .customer-list { list-style: none; padding: 0; }
+        .customer-list li { background: #f8f9fa; margin-bottom: 10px; padding: 15px; border-radius: 8px; border-left: 5px solid #007bff; cursor: pointer; transition: 0.2s; font-weight: 500; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        .customer-list li:hover { background: #e2e6ea; transform: translateX(5px); }
+        
+        .limit-badge { background: #e9ecef; padding: 6px 12px; border-radius: 20px; font-size: 13px; color: #495057; font-weight: bold; border: 1px solid #ced4da; }
+
+        .card { border: 1px solid #ddd; border-radius: 10px; padding: 25px; background: #fff; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .card-row:last-child { border-bottom: none; }
+        .hidden-data { color: #dc3545; font-weight: bold; }
+
+        .toggle-container { margin-bottom: 15px; padding: 12px; background: #fff3cd; border-left: 5px solid #ffc107; border-radius: 5px; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+
+        #chartContainer { width: 55%; margin: 30px auto; position: relative; }
+        
+        .limit-section { margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ddd; }
+        .limit-title { text-align: center; font-size: 16px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .bar-container { width: 100%; background-color: #e9ecef; border-radius: 20px; height: 35px; display: flex; overflow: hidden; border: 1px solid #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .bar-used { background-color: #dc3545; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: bold; transition: width 0.6s ease-in-out; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        .bar-available { background-color: #28a745; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: bold; transition: width 0.6s ease-in-out; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+
+        #loading { text-align: center; font-weight: bold; color: #007bff; font-size: 18px; margin: 40px 0; }
+
+        @media (max-width: 600px) {
+            #chartContainer { width: 90%; }
+            .search-box { flex-direction: column; }
+            .search-box input { width: 100%; box-sizing: border-box; }
+            .search-box button { width: 100%; padding: 12px; }
+            .card-row { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .card-row b { font-size: 16px; color: #0056b3; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Müşteri Yönetim Paneli</h2>
+    
+    <div id="loading">Veriler Google Sheets'ten Çekiliyor... Lütfen Bekleyin...</div>
+
+    <div class="toggle-container" id="pinContainer" style="display: none;">
+        <input type="checkbox" id="adminToggle" style="width:18px; height:18px; cursor:pointer;" onchange="checkPin(this)"> 
+        <label for="adminToggle" style="cursor: pointer;">Yetkili Modunu Aç</label>
+    </div>
+
+    <div id="dashboardView" style="display: none;">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Müşteri Adı veya Numarası ile ara..." onkeyup="handleSearchEnter(event)">
+            <button onclick="searchCustomer()">Müşteri Ara</button>
+        </div>
+        
+        <div id="chartContainer">
+            <canvas id="segmentChart"></canvas>
+        </div>
+    </div>
+
+    <div id="segmentListView" style="display: none;">
+        <button class="back-btn" onclick="showDashboard()">← Ana Ekrana Dön</button>
+        <h3 id="segmentTitle">Segment Müşterileri</h3>
+        <ul class="customer-list" id="customerList"></ul>
+    </div>
+
+    <div id="customerDetailView" style="display: none;">
+        <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+            <button class="back-btn" style="margin:0;" onclick="showSegmentList()">← Listeye Dön</button>
+            <button class="back-btn" style="background-color: #17a2b8; margin:0;" onclick="showDashboard()">⌂ Ana Ekran</button>
+        </div>
+        <div class="card" id="customerCard"></div>
+    </div>
+
+</div>
+
+<script>
+    // WEB APP URL'SİNİ BURAYA YAPIŞTIR
+    const API_URL = "https://script.google.com/macros/s/AKfycbyeb0oy-HbgKkZZhJl0W5PgRsEWTALE3i_UIs4Fn7mtKOp4h26zKQrE7EYS0gApFJAgQg/exec";
+    
+    let allData = [];
+    let currentSegment = "";
+    let currentCustomer = null;
+    let isAdmin = false;
+    let chartInstance = null;
+
+    fetch(API_URL)
+        .then(response => response.json())
+        .then(data => {
+            if(data.error) {
+                document.getElementById('loading').innerText = "Hata: " + data.error;
+                return;
+            }
+            allData = data;
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('pinContainer').style.display = 'block';
+            showDashboard();
+            buildChart();
+        })
+        .catch(error => {
+            document.getElementById('loading').innerText = "Bağlantı Hatası!";
+            console.error(error);
+        });
+
+    function handleSearchEnter(e) { if (e.key === 'Enter') searchCustomer(); }
+
+    function searchCustomer() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        if (!query) return;
+        const found = allData.find(item => String(item.musteriNo).toLowerCase().includes(query) || String(item.musteriAdi).toLowerCase().includes(query));
+        if (found) {
+            currentSegment = found.statu;
+            openCustomerCard(found);
+        } else {
+            alert("Müşteri bulunamadı!");
+        }
+    }
+
+    function checkPin(checkbox) {
+        if (checkbox.checked) {
+            let pin = prompt("Gizli verileri görmek için PIN giriniz (Örnek: 1234):");
+            if (pin === "1234") {
+                isAdmin = true;
+                if (currentCustomer) openCustomerCard(currentCustomer);
+            } else {
+                alert("Hatalı PIN!");
+                checkbox.checked = false;
+                isAdmin = false;
+            }
+        } else {
+            isAdmin = false;
+            if (currentCustomer) openCustomerCard(currentCustomer);
+        }
+    }
+
+    // --- EN GÜÇLÜ RENK EŞLEŞTİRME MANTIĞI ---
+    function buildChart() {
+        const statuCounts = {};
+        
+        allData.forEach(item => {
+            let statu = item.statu ? String(item.statu).trim() : "Belirsiz";
+            statuCounts[statu] = (statuCounts[statu] || 0) + 1;
+        });
+
+        const labels = Object.keys(statuCounts);
+        const dataValues = Object.values(statuCounts);
+
+        // Kökten Çözüm: Etiketin "içinde" o harfler geçiyorsa rengi ver.
+        const backgroundColors = labels.map(label => {
+            let text = String(label).toLowerCase(); // Hepsini küçük harfe çevir
+            
+            if (text.includes('health')) return '#28a745'; // İçinde health geçiyorsa -> Yeşil
+            if (text.includes('legal'))  return '#dc3545'; // İçinde legal geçiyorsa -> Kırmızı
+            if (text.includes('churn'))  return '#fd7e14'; // İçinde churn geçiyorsa -> Turuncu
+            if (text.includes('park'))   return '#ffc107'; // İçinde park geçiyorsa -> Sarı
+            
+            return '#3498db'; // Hiçbiri yoksa (veya yepyeni bir kelimeyse) -> Mavi yap
+        });
+
+        const ctx = document.getElementById('segmentChart').getContext('2d');
+        
+        if(chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels, 
+                datasets: [{ 
+                    data: dataValues, 
+                    backgroundColor: backgroundColors, 
+                    borderWidth: 2,           
+                    borderColor: '#ffffff',   
+                    hoverOffset: 20,          
+                    borderRadius: 5           
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '65%', 
+                plugins: {
+                    legend: {
+                        position: 'bottom', 
+                        labels: { padding: 20, font: { size: 14, family: 'Segoe UI' } }
+                    },
+                    tooltip: {
+                        padding: 15,
+                        bodyFont: { size: 14 },
+                        callbacks: {
+                            label: (context) => {
+                                let label = context.label || '';
+                                let value = context.raw || 0;
+                                let total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                let percent = ((value / total) * 100).toFixed(1);
+                                return ` ${label}: ${value} Müşteri (%${percent})`;
+                            }
+                        }
+                    }
+                },
+                onClick: (event, elements) => {
+                    if (elements.length > 0) {
+                        currentSegment = chartInstance.data.labels[elements[0].index];
+                        showSegmentList(currentSegment);
+                    }
+                }
+            }
+        });
+    }
+
+    function showDashboard() {
+        document.getElementById('dashboardView').style.display = 'block';
+        document.getElementById('segmentListView').style.display = 'none';
+        document.getElementById('customerDetailView').style.display = 'none';
+        currentCustomer = null;
+    }
+
+    function parseToFloat(val) {
+        if (typeof val === 'number') return val;
+        if (!val) return 0;
+        let str = String(val);
+        if (str.includes(',')) {
+            str = str.replace(/\./g, '').replace(',', '.');
+        }
+        str = str.replace(/[^0-9.-]/g, '');
+        return parseFloat(str) || 0;
+    }
+
+    function formatTRY(val) {
+        let num = parseToFloat(val);
+        return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(num);
+    }
+
+    function showSegmentList(segmentName = currentSegment) {
+        document.getElementById('dashboardView').style.display = 'none';
+        document.getElementById('segmentListView').style.display = 'block';
+        document.getElementById('customerDetailView').style.display = 'none';
+        currentSegment = segmentName;
+        currentCustomer = null;
+        document.getElementById('segmentTitle').innerText = `${segmentName} Segmenti Müşterileri`;
+
+        const listUl = document.getElementById('customerList');
+        listUl.innerHTML = '';
+        const filteredData = allData.filter(item => (item.statu ? String(item.statu).trim() : "Belirsiz") === segmentName);
+
+        filteredData.forEach(item => {
+            let li = document.createElement('li');
+            li.innerHTML = `<span><b>${item.musteriNo}</b> - ${item.musteriAdi}</span> <span class="limit-badge">Limit: ${formatTRY(item.catiLimit)}</span>`;
+            li.onclick = () => openCustomerCard(item);
+            listUl.appendChild(li);
+        });
+    }
+
+    function openCustomerCard(customer) {
+        currentCustomer = customer;
+        document.getElementById('dashboardView').style.display = 'none';
+        document.getElementById('segmentListView').style.display = 'none';
+        document.getElementById('customerDetailView').style.display = 'block';
+
+        const card = document.getElementById('customerCard');
+        
+        let fCati = formatTRY(customer.catiLimit);
+        let fKullanilan = formatTRY(customer.kullanilanLimit);
+        let fKullanilmayan = formatTRY(customer.kullanilmayanLimit);
+        let fAylikOdeme = formatTRY(customer.aylikOdeme);
+        let fAnlik = formatTRY(customer.anlikLimit);
+        let fAySonu = formatTRY(customer.aySonuLimit);
+
+        let html = `
+            <h3 style="margin-top:0; border-bottom:2px solid #007bff; padding-bottom:10px;">${customer.musteriAdi}</h3>
+            <div class="card-row"><span>Müşteri Numarası:</span> <b>${customer.musteriNo}</b></div>
+            <div class="card-row"><span>Müşteri Ünvanı:</span> <b>${customer.unvan}</b></div>
+            <div class="card-row"><span>Müşteri Statüsü:</span> <b>${customer.statu}</b></div>
+            <div class="card-row"><span>Müşteri Çatı Limiti:</span> <b>${fCati}</b></div>
+            <div class="card-row"><span>Anlık Kullanılabilir Limit:</span> <b>${fAnlik}</b></div>
+            <div class="card-row"><span>Ay Sonu Maksimum Limit:</span> <b>${fAySonu}</b></div>
+        `;
+
+        if (isAdmin) {
+            html += `
+                <div class="card-row hidden-data"><span>Kullanılan Limit:</span> <b>${fKullanilan}</b></div>
+                <div class="card-row hidden-data"><span>Kullanılmayan Limit:</span> <b>${fKullanilmayan}</b></div>
+                <div class="card-row hidden-data"><span>Aylık Beklenen Ödeme:</span> <b>${fAylikOdeme}</b></div>
+            `;
+        }
+
+        let rawCati = parseToFloat(customer.catiLimit) || 1;
+        let rawKullanilan = parseToFloat(customer.kullanilanLimit);
+        let rawAnlik = parseToFloat(customer.anlikLimit);
+
+        let usedPercent = (rawKullanilan / rawCati) * 100;
+        let availablePercent = (rawAnlik / rawCati) * 100;
+        
+        if (usedPercent > 100) usedPercent = 100;
+        if (availablePercent > (100 - usedPercent)) availablePercent = 100 - usedPercent;
+
+        html += `
+            <div class="limit-section">
+                <div class="limit-title">Müşteri Çatı Limiti: ${fCati}</div>
+                <div class="bar-container">
+                    <div class="bar-used" style="width: ${usedPercent}%;" title="Kullanılan Limit: ${fKullanilan}">
+                        ${usedPercent > 5 ? fKullanilan : ''}
+                    </div>
+                    <div class="bar-available" style="width: ${availablePercent}%;" title="Anlık Kullanılabilir: ${fAnlik}">
+                        ${availablePercent > 5 ? fAnlik : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        card.innerHTML = html;
+    }
+</script>
+
+</body>
+</html>
