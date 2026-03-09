@@ -7,126 +7,105 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Roboto', sans-serif; padding: 20px; background-color: #f0f2f5; color: #333; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h2, h3 { text-align: center; color: #2c3e50; font-weight: 700; }
-        
-        /* CANLI ARAMA ALANI */
-        .search-container { position: relative; width: 80%; margin: 0 auto 25px auto; }
-        .search-box input { font-family: 'Roboto', sans-serif; padding: 12px; width: 100%; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        .search-results { position: absolute; width: 100%; background: white; border: 1px solid #ddd; border-radius: 0 0 8px 8px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
-        .search-results div { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
-        .search-results div:hover { background-color: #f8f9fa; color: #007bff; }
-        
-        button { font-family: 'Roboto', sans-serif; padding: 10px 15px; background-color: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s; }
-        button:hover { opacity: 0.8; }
-        .back-btn { margin-bottom: 15px; background-color: #343a40; }
-
+        body { font-family: 'Roboto', sans-serif; padding: 20px; background-color: #f0f2f5; color: #333; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2, h3 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        .search-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; }
+        .search-box input { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; transition: 0.3s; }
+        .search-results { position: absolute; width: 100%; background: white; border: 1px solid #ddd; border-radius: 0 0 10px 10px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .search-results div { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
+        button { font-family: 'Roboto', sans-serif; padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 500; }
+        .back-btn { background-color: #343a40; color: white; margin-bottom: 15px; }
         .customer-list { list-style: none; padding: 0; }
-        .customer-list li { background: #f8f9fa; margin-bottom: 10px; padding: 15px; border-radius: 8px; border-left: 5px solid #007bff; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
-        .customer-list li:hover { background: #e2e6ea; transform: translateX(5px); }
-        
-        .limit-badge { background: #e9ecef; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; border: 1px solid #ced4da; }
-        .card { border: 1px solid #ddd; border-radius: 10px; padding: 25px; background: #fff; margin-top: 15px; }
-        .card-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .hidden-data { color: #dc3545; font-weight: 700; }
-
-        .toggle-container { margin-bottom: 15px; padding: 12px; background: #fff3cd; border-left: 5px solid #ffc107; border-radius: 5px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-
-        #chartContainer { width: 55%; margin: 30px auto; position: relative; }
-        
-        .limit-section { margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ddd; }
-        .limit-title { text-align: center; font-size: 15px; font-weight: 700; margin-bottom: 10px; }
-        .bar-container { width: 100%; background-color: #e9ecef; border-radius: 20px; height: 35px; display: flex; overflow: hidden; border: 1px solid #ccc; }
-        .bar-used { background-color: #dc3545; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; transition: width 0.6s ease; }
-        .bar-available { background-color: #28a745; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; transition: width 0.6s ease; }
-        .bar-legend { display: flex; justify-content: space-between; font-size: 12px; margin-top: 8px; font-weight: 700; }
-
-        @media (max-width: 600px) {
-            #chartContainer { width: 95%; }
-            .search-container { width: 100%; }
-            .card-row { flex-direction: column; align-items: flex-start; gap: 5px; }
-            .bar-legend { flex-direction: column; align-items: center; gap: 5px; text-align: center; }
-        }
+        .customer-list li { background: #fff; margin-bottom: 12px; padding: 16px; border-radius: 10px; border-left: 6px solid #007bff; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .limit-badge { background: #f1f3f5; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; border: 1px solid #dee2e6; }
+        .card { border: 1px solid #eee; border-radius: 15px; padding: 25px; background: #fff; }
+        .card-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8f9fa; font-size: 15px; }
+        .hidden-data { color: #dc3545; font-weight: 700; background-color: #fff5f5; padding: 10px; border-radius: 6px; }
+        .toggle-container { margin-bottom: 20px; padding: 14px; background: #fff3cd; border-left: 6px solid #ffc107; border-radius: 8px; display: flex; align-items: center; gap: 10px; }
+        #chartContainer { width: 60%; margin: 30px auto; }
+        .limit-section { margin-top: 30px; padding-top: 20px; border-top: 2px dashed #eee; }
+        .bar-container { width: 100%; background-color: #e9ecef; border-radius: 25px; height: 35px; display: flex; overflow: hidden; }
+        .bar-used { background-color: #dc3545; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; }
+        .bar-available { background-color: #28a745; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; }
+        .bar-legend { display: flex; justify-content: space-between; font-size: 12px; margin-top: 10px; font-weight: 700; }
+        #loading { text-align: center; padding: 50px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (max-width: 600px) { #chartContainer { width: 100%; } .card-row { flex-direction: column; } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Squad 2 Main Dashboard</h2>
-    
-    <div id="loading" style="text-align:center; font-weight:bold; margin:40px;">Yükleniyor...</div>
+    <div id="loading">
+        <div class="spinner"></div>
+        <p id="loadingText">Veriler Google Sheets'ten güvenli bir şekilde çekiliyor...</p>
+    </div>
 
     <div class="toggle-container" id="pinContainer" style="display:none;">
-        <input type="checkbox" id="adminToggle" style="width:18px; height:18px; cursor:pointer;" onchange="checkPin(this)"> 
-        <label for="adminToggle" style="cursor:pointer;">Yetkili Modunu Aç</label>
+        <input type="checkbox" id="adminToggle" onchange="checkPin(this)"> 
+        <label for="adminToggle">Yetkili Modunu Aç (Gizli Verileri Göster)</label>
     </div>
 
     <div id="dashboardView" style="display:none;">
         <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Müşteri Adı veya No yazın..." oninput="liveSearch()">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Müşteri Adı veya No ile canlı ara..." oninput="liveSearch()">
+            </div>
             <div id="searchResults" class="search-results"></div>
         </div>
-        
-        <div id="chartContainer">
-            <canvas id="segmentChart"></canvas>
-        </div>
+        <div id="chartContainer"><canvas id="segmentChart"></canvas></div>
     </div>
 
     <div id="segmentListView" style="display:none;">
-        <button class="back-btn" onclick="showDashboard()">← Geri Dön</button>
+        <button class="back-btn" onclick="showDashboard()">← Ana Panele Dön</button>
         <h3 id="segmentTitle"></h3>
         <ul class="customer-list" id="customerList"></ul>
     </div>
 
     <div id="customerDetailView" style="display:none;">
-        <div style="display: flex; gap: 5px; margin-bottom: 15px;">
-            <button class="back-btn" style="margin:0;" onclick="showSegmentList()">← Listeye Dön</button>
-            <button class="back-btn" style="background-color: #17a2b8; margin:0;" onclick="showDashboard()">⌂ Ana Ekran</button>
+        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+            <button class="back-btn" style="background-color:#6c757d;" onclick="showSegmentList()">← Listeye Dön</button>
+            <button class="back-btn" style="background-color: #17a2b8;" onclick="showDashboard()">⌂ Ana Ekran</button>
         </div>
         <div class="card" id="customerCard"></div>
     </div>
 </div>
 
 <script>
-    const API_URL = "BURAYA_KOPYALADIGIN_WEB_APP_URLSINI_YAPISTIR";
-    
+    const API_URL = "https://script.google.com/macros/s/AKfycbzoNFQ1mJAijr3-v1Dzohc6SfwCSn7f9W7FUTWsAtXp9gIe9G7RZQ8DSrINN7XbhNcZoA/exec";
     let allData = [];
     let isAdmin = false;
     let chartInstance = null;
     let currentCustomer = null;
+    let currentSegment = "";
 
-    fetch(API_URL).then(r => r.json()).then(data => {
-        allData = data;
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('pinContainer').style.display = 'flex';
-        showDashboard();
-        buildChart();
-    });
+    fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) throw new Error(data.error);
+            allData = data;
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('pinContainer').style.display = 'flex';
+            showDashboard();
+            buildChart();
+        })
+        .catch(err => {
+            document.getElementById('loadingText').innerText = "Hata: " + err.message;
+        });
 
     function liveSearch() {
         const input = document.getElementById('searchInput');
         const resultsDiv = document.getElementById('searchResults');
         const query = input.value.toLowerCase().trim();
-
-        if (query.length < 2) {
-            resultsDiv.style.display = 'none';
-            return;
-        }
-
-        const matches = allData.filter(m => 
-            String(m.musteriNo).toLowerCase().includes(query) || 
-            String(m.musteriAdi).toLowerCase().includes(query)
-        ).slice(0, 8);
-
+        if (query.length < 2) { resultsDiv.style.display = 'none'; return; }
+        const matches = allData.filter(m => String(m.musteriNo).toLowerCase().includes(query) || String(m.musteriAdi).toLowerCase().includes(query)).slice(0, 8);
         if (matches.length > 0) {
-            resultsDiv.innerHTML = matches.map(m => 
-                `<div onclick="selectCustomer('${m.musteriNo}')"><b>${m.musteriNo}</b> - ${m.musteriAdi}</div>`
-            ).join('');
+            resultsDiv.innerHTML = matches.map(m => `<div onclick="selectCustomer('${m.musteriNo}')"><b>${m.musteriNo}</b> - ${m.musteriAdi}</div>`).join('');
             resultsDiv.style.display = 'block';
-        } else {
-            resultsDiv.style.display = 'none';
-        }
+        } else { resultsDiv.style.display = 'none'; }
     }
 
     function selectCustomer(no) {
@@ -138,65 +117,30 @@
 
     function checkPin(checkbox) {
         if (checkbox.checked) {
-            let pin = prompt("Erişim şifresini giriniz:");
-            if (pin === "1907") { // <--- PIN GÜNCELLENDİ
-                isAdmin = true;
-                if (currentCustomer) openCustomerCard(currentCustomer);
-            } else {
-                alert("Hatalı PIN!");
-                checkbox.checked = false;
-                isAdmin = false;
-            }
-        } else {
-            isAdmin = false;
-            if (currentCustomer) openCustomerCard(currentCustomer);
-        }
+            let pin = prompt("PIN:");
+            if (pin === "1907") { isAdmin = true; if (currentCustomer) openCustomerCard(currentCustomer); }
+            else { alert("Hatalı!"); checkbox.checked = false; isAdmin = false; }
+        } else { isAdmin = false; if (currentCustomer) openCustomerCard(currentCustomer); }
     }
 
     function buildChart() {
         const counts = {};
-        allData.forEach(m => {
-            let s = m.statu ? String(m.statu).trim() : "Belirsiz";
-            counts[s] = (counts[s] || 0) + 1;
-        });
-
+        allData.forEach(m => { let s = m.statu ? String(m.statu).trim() : "Belirsiz"; counts[s] = (counts[s] || 0) + 1; });
         const labels = Object.keys(counts);
-        const backgroundColors = labels.map(l => {
+        const colors = labels.map(l => {
             let t = l.toLowerCase();
             if (t.includes('health')) return '#28a745';
-            if (t.includes('legal'))  return '#dc3545';
-            if (t.includes('churn'))  return '#fd7e14';
-            if (t.includes('park'))   return '#ffc107';
+            if (t.includes('legal')) return '#dc3545';
+            if (t.includes('churn')) return '#fd7e14';
+            if (t.includes('park')) return '#ffc107';
             return '#3498db';
         });
-
         const ctx = document.getElementById('segmentChart').getContext('2d');
         if(chartInstance) chartInstance.destroy();
-
         chartInstance = new Chart(ctx, {
             type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{ 
-                    data: Object.values(counts), 
-                    backgroundColor: backgroundColors, 
-                    cutout: '65%',
-                    borderWidth: 2,
-                    borderColor: '#ffffff',
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                plugins: { 
-                    legend: { 
-                        position: 'bottom', 
-                        labels: { padding: 10, font: { size: 11, family: 'Roboto' } } 
-                    } 
-                },
-                onClick: (e, el) => {
-                    if (el.length > 0) showSegmentList(labels[el[0].index]);
-                }
-            }
+            data: { labels: labels, datasets: [{ data: Object.values(counts), backgroundColor: colors, cutout: '65%' }] },
+            options: { onClick: (e, el) => { if (el.length > 0) showSegmentList(labels[el[0].index]); } }
         });
     }
 
@@ -204,23 +148,83 @@
         document.getElementById('dashboardView').style.display = 'block';
         document.getElementById('segmentListView').style.display = 'none';
         document.getElementById('customerDetailView').style.display = 'none';
-        currentCustomer = null;
     }
 
     function showSegmentList(s) {
+        if (s) currentSegment = s;
         document.getElementById('dashboardView').style.display = 'none';
         document.getElementById('segmentListView').style.display = 'block';
-        document.getElementById('segmentTitle').innerText = s + " Segmenti";
+        document.getElementById('customerDetailView').style.display = 'none';
+        document.getElementById('segmentTitle').innerText = currentSegment + " Segmenti";
         const list = document.getElementById('customerList');
-        list.innerHTML = allData.filter(m => (m.statu||"").trim() === s).map(m => 
+        list.innerHTML = allData.filter(m => (m.statu || "").trim() === currentSegment).map(m => 
             `<li onclick='openCustomerCard(${JSON.stringify(m).replace(/'/g, "&apos;")})'>
                 <span><b>${m.musteriNo}</b> - ${m.musteriAdi}</span>
                 <span class="limit-badge">${formatTRY(m.catiLimit)}</span>
-            </li>`
-        ).join('');
+            </li>`).join('');
     }
 
     function openCustomerCard(m) {
         currentCustomer = m;
+        if (m.statu) currentSegment = m.statu.trim();
         document.getElementById('dashboardView').style.display = 'none';
-        document.
+        document.getElementById('segmentListView').style.display = 'none';
+        document.getElementById('customerDetailView').style.display = 'block';
+
+        let html = `
+            <h3>${m.musteriAdi}</h3>
+            <div class="card-row"><span>Müşteri No:</span> <b>${m.musteriNo}</b></div>
+            <div class="card-row"><span>Müşteri Ünvanı:</span> <b>${m.unvan}</b></div>
+            <div class="card-row"><span>Segment Statüsü:</span> <b>${m.statu}</b></div>
+            <div class="card-row"><span>Müşteri Çatı Limiti:</span> <b>${formatTRY(m.catiLimit)}</b></div>
+            <div class="card-row"><span>Anlık Kullanılabilir Limit:</span> <b>${formatTRY(m.anlikLimit)}</b></div>
+            <div class="card-row"><span>Ay Sonu Maksimum Limit:</span> <b>${formatTRY(m.aySonuLimit)}</b></div>
+            <div class="card-row"><span>Müşteri Ödeme Performansı:</span> <b>${m.yeniVeri1 || '-'}</b></div>
+            <div class="card-row"><span>Müşteri Ödeme Skoru:</span> <b>${m.yeniVeri2 || '-'}</b></div>`;
+
+        if (isAdmin) {
+            html += `
+                <div class="hidden-data">
+                    <div class="card-row"><span>Kullanılan Limit:</span> <b>${formatTRY(m.kullanilanLimit)}</b></div>
+                    <div class="card-row"><span>Kullanılmayan Limit:</span> <b>${formatTRY(m.kullanilmayanLimit)}</b></div>
+                    <div class="card-row"><span>Aylık Beklenen Ödeme:</span> <b>${formatTRY(m.aylikOdeme)}</b></div>
+                </div>`;
+        }
+
+        let rawC = parseToFloat(m.catiLimit) || 1;
+        let rawK = parseToFloat(m.kullanilanLimit);
+        let rawA = parseToFloat(m.anlikLimit);
+        let uP = Math.round((rawK/rawC)*100);
+        let aP = Math.round((rawA/rawC)*100);
+        if(uP + aP > 100) aP = 100 - uP;
+
+        html += `
+            <div class="limit-section">
+                <div class="limit-title">Limit Kullanım Analizi (Toplam: ${formatTRY(m.catiLimit)})</div>
+                <div class="bar-container">
+                    <div class="bar-used" style="width:${uP}%">${uP > 8 ? '%' + uP : ''}</div>
+                    <div class="bar-available" style="width:${aP}%">${aP > 8 ? '%' + aP : ''}</div>
+                </div>
+                <div class="bar-legend">
+                    <span style="color:#dc3545">● Kullanılan: ${formatTRY(m.kullanilanLimit)}</span>
+                    <span style="color:#28a745">● Anlık: ${formatTRY(m.anlikLimit)}</span>
+                </div>
+            </div>`;
+        document.getElementById('customerCard').innerHTML = html;
+    }
+
+    function parseToFloat(v) {
+        if (!v) return 0;
+        let s = String(v).trim();
+        if (s.includes(',') && s.includes('.')) { s = s.replace(/\./g, '').replace(',', '.'); }
+        else if (s.includes(',')) { s = s.replace(',', '.'); }
+        s = s.replace(/[^0-9.-]/g, '');
+        return parseFloat(s) || 0;
+    }
+
+    function formatTRY(v) {
+        return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2 }).format(parseToFloat(v));
+    }
+</script>
+</body>
+</html>
